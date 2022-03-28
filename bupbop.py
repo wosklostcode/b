@@ -217,7 +217,7 @@ slider = settings_menu.add.range_slider('Mob Counter', MAX_MOBS, (1, 150), 1, ra
 
 settings_menu.add.button('Return to menu', pygame_menu.events.BACK)
 
-# About Menuu
+# About Menu
 about_menu.add.label(
     'About',
     background_color='#240046',
