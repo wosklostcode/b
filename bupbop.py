@@ -3,6 +3,7 @@ from typing import Union
 import pygame
 import pygame_menu
 import random
+import time
 from os import path
 
 from pygame import Surface
@@ -238,6 +239,7 @@ color_back = (47, 113, 117)
 # Цикл игры
 game_over = True
 running = True
+paused = False
 while running:
     if game_over:
         if menu.is_enabled():
@@ -268,34 +270,41 @@ while running:
         mob_spawn_time = pygame.time.get_ticks()
 
         game_over = False
+
     # Держим цикл на правильной скорости
     clock.tick(FPS)
-
-    if pygame.key.get_pressed()[pygame.K_SPACE]:
-        new_mob()
-
-    if mob_spawn_time < pygame.time.get_ticks() - NEWMOB_TIME and len(mobs) <= MAX_MOBS:
-        mob_spawn_time = pygame.time.get_ticks()
-        new_mob()
-
+    draw_text(screen, 'pauza', 100, WIDTH / 2, HEIGHT / 2)
     # Ввод процесса (события)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                paused = not paused
 
-    for hit in pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_mask):
-        game_over = True
-        menu.get_widget('l_record').set_title(f'Record: {round((pygame.time.get_ticks() - start_time) / 1000, 2)} s')
-        menu.enable()
+    if not paused:
+        if pygame.key.get_pressed()[pygame.K_SPACE]:
+            new_mob()
 
-    # Обновление
-    all_sprites.update()
-    # Рендеринг
-    screen.fill(color_back)
-    all_sprites.draw(screen)
-    draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
-    draw_text(screen, str(f'{(pygame.time.get_ticks() - start_time) / 1000 :.2f}'), 20, WIDTH / 2, 30)
-    # После отрисовки всего, переворачиваем экран
-    pygame.display.flip()
+        if mob_spawn_time < pygame.time.get_ticks() - NEWMOB_TIME and len(mobs) <= MAX_MOBS:
+            mob_spawn_time = pygame.time.get_ticks()
+            new_mob()
+
+        for hit in pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_mask):
+            game_over = True
+            menu.get_widget('l_record').set_title(f'Record: {round((pygame.time.get_ticks() - start_time) / 1000, 2)} s')
+            menu.enable()
+
+        # Обновление
+        all_sprites.update()
+
+        # Рендеринг
+        screen.fill(color_back)
+        all_sprites.draw(screen)
+        draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
+        draw_text(screen, str(f'{(pygame.time.get_ticks() - start_time) / 1000 :.2f}'), 20, WIDTH / 2, 30)
+
+        # После отрисовки всего, переворачиваем экран
+        pygame.display.flip()
 
 pygame.quit()
