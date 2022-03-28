@@ -62,6 +62,10 @@ def color_selector(selected_value, color, **kwargs):
         player_img = "player_green.png"
         mob_img = "mob_green.png"
         color_back = (21, 93, 39)
+    elif color_selector[1] == 5:
+        player_img = "player_white.png"
+        mob_img = "mob_white.png"
+        color_back = (82, 97, 107)
 
 
 def start_the_game():
@@ -190,7 +194,7 @@ movement_mode = settings_menu.add.toggle_switch('Game Control',
                                                 switch_border_color=(255, 255, 255),
                                                 state_text_font_color=('#E0AAFF', '#E0AAFF'))
 
-settings_menu.add.selector('Color Palette ', [('blue', 1), ('orange', 2), ('purple', 3), ('green', 4)],
+settings_menu.add.selector('Color Palette ', [('blue', 1), ('orange', 2), ('purple', 3), ('green', 4), ('white', 5)],
                            onchange=color_selector,
                            onreturn=color_selector,
                            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY,
