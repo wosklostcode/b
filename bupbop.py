@@ -161,7 +161,7 @@ mytheme = pygame_menu.themes.Theme(background_color=(16, 0, 43, 255),
                                    title_font_shadow=False,
                                    widget_padding=20,
                                    widget_font_color='#E0AAFF',
-                                   widget_font=pygame.font.Font('./fonts/Doom2016Text-GOlBq.ttf', 50))
+                                   widget_font=pygame.font.Font('./fonts/Swish-1RKg.ttf', 50))
 mytheme.title = False
 
 menu = pygame_menu.Menu('', 1920, 1080, theme=mytheme)
@@ -172,7 +172,8 @@ menu.add.label(
     'The Ball Game',
     background_color='#240046',
     background_inflate=(30, 0),
-    float=False, font_size=80
+    float=False,
+    font_size=80
 ).translate(0, -10)
 
 # Main Menu
@@ -269,6 +270,8 @@ while running:
 
         player.define_input(movement_mode.get_value())
 
+        time_in_game = 0
+
         start_time = pygame.time.get_ticks()
 
         mob_spawn_time = pygame.time.get_ticks()
@@ -276,8 +279,7 @@ while running:
         game_over = False
 
     # Держим цикл на правильной скорости
-    clock.tick(FPS)
-    draw_text(screen, 'pauza', 100, WIDTH / 2, HEIGHT / 2)
+    milliseconds = clock.tick(FPS)
     # Ввод процесса (события)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -287,6 +289,7 @@ while running:
                 paused = not paused
 
     if not paused:
+        time_in_game += milliseconds
         if pygame.key.get_pressed()[pygame.K_SPACE]:
             new_mob()
 
@@ -296,7 +299,7 @@ while running:
 
         for hit in pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_mask):
             game_over = True
-            menu.get_widget('l_record').set_title(f'Record: {round((pygame.time.get_ticks() - start_time) / 1000, 2)} s')
+            menu.get_widget('l_record').set_title(f'Record: {round((time_in_game) / 1000, 2)} s')
             menu.enable()
 
         # Обновление
@@ -306,7 +309,7 @@ while running:
         screen.fill(color_back)
         all_sprites.draw(screen)
         draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
-        draw_text(screen, str(f'{(pygame.time.get_ticks() - start_time) / 1000 :.2f}'), 20, WIDTH / 2, 30)
+        draw_text(screen, str(f'{time_in_game / 1000 :.2f}'), 20, WIDTH / 2, 30)
 
         # После отрисовки всего, переворачиваем экран
         pygame.display.flip()
