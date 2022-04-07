@@ -66,6 +66,10 @@ def color_selector(selected_value, color, **kwargs):
         player_img = "player_white.png"
         mob_img = "mob_white.png"
         color_back = (82, 97, 107)
+    elif color_selector[1] == 6:
+        player_img = "player_cat.png"
+        mob_img = "mob_dog.png"
+        color_back = (0, 0, 0)
 
 
 def start_the_game():
@@ -195,7 +199,7 @@ movement_mode = settings_menu.add.toggle_switch('Game Control',
                                                 switch_border_color=(255, 255, 255),
                                                 state_text_font_color=('#E0AAFF', '#E0AAFF'))
 
-settings_menu.add.selector('Color Palette ', [('blue', 1), ('orange', 2), ('purple', 3), ('green', 4), ('white', 5)],
+settings_menu.add.selector('Color Palette ', [('blue', 1), ('orange', 2), ('purple', 3), ('green', 4), ('white', 5), ('cat', 6)],
                            onchange=color_selector,
                            onreturn=color_selector,
                            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY,
@@ -278,18 +282,22 @@ while running:
 
         game_over = False
 
+        clock.tick(FPS)
+
     # Держим цикл на правильной скорости
-    milliseconds = clock.tick(FPS)
+    clock.tick(FPS)
     # Ввод процесса (события)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_p:
                 paused = not paused
+            if event.key == pygame.K_ESCAPE:
+                running = False
 
-    if not paused:
-        time_in_game += milliseconds
+    if not paused and not game_over:
+        time_in_game += clock.get_time()
         if pygame.key.get_pressed()[pygame.K_SPACE]:
             new_mob()
 
@@ -299,7 +307,7 @@ while running:
 
         for hit in pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_mask):
             game_over = True
-            menu.get_widget('l_record').set_title(f'Record: {round((time_in_game) / 1000, 2)} s')
+            menu.get_widget('l_record').set_title(f'Record: {round(time_in_game / 1000, 2)} s')
             menu.enable()
 
         # Обновление
