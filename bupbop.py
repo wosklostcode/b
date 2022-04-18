@@ -27,11 +27,14 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 ABOUT = ['ballgame',
-         'Run away from big circles being a small circle!']
+         'Run away from big circles being a small circle!',
+         'how to play:',
+         "arrow controls, p to pause, don't touch space"]
 
 # Создаем игру и окно
 pygame.init()
 pygame.mixer.init()
+pygame.mixer.music.load("sounds/nya.mp3")
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("circles")
@@ -50,30 +53,37 @@ def color_selector(selected_value, color, **kwargs):
         player_img = "player.png"
         mob_img = "mob.png"
         color_back = (47, 113, 117)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 2:
         player_img = "player_orange.png"
         mob_img = "mob_orange.png"
         color_back = (129, 52, 5)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 3:
         player_img = "player_purple.png"
         mob_img = "mob_purple.png"
         color_back = (90, 24, 154)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 4:
         player_img = "player_green.png"
         mob_img = "mob_green.png"
         color_back = (21, 93, 39)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 5:
         player_img = "player_white.png"
         mob_img = "mob_white.png"
         color_back = (82, 97, 107)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 6:
         player_img = "player_cat.png"
         mob_img = "mob_dog.png"
         color_back = (0, 0, 0)
+        pygame.mixer.music.stop()
     elif color_selector[1] == 7:
         player_img = "player_catnyan.png"
         mob_img = "mob_donut.png"
         color_back = (1, 68, 121)
+        pygame.mixer.music.play(-1)
 
 
 def start_the_game():
@@ -169,7 +179,7 @@ mytheme = pygame_menu.themes.Theme(background_color=(16, 0, 43, 255),
                                    title_font_shadow=False,
                                    widget_padding=20,
                                    widget_font_color='#E0AAFF',
-                                   widget_font=pygame.font.Font('./fonts/Swish-1RKg.ttf', 50))
+                                   widget_font=pygame.font.Font('./fonts/fortnitebattlefest.ttf', 50))
 mytheme.title = False
 
 menu = pygame_menu.Menu('', 1920, 1080, theme=mytheme)
@@ -326,8 +336,8 @@ while running:
         # Рендеринг
         screen.fill(color_back)
         all_sprites.draw(screen)
-        draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
-        draw_text(screen, str(f'{time_in_game / 1000 :.2f}'), 20, WIDTH / 2, 30)
+        # draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
+        # draw_text(screen, str(f'{time_in_game / 1000 :.2f}'), 20, WIDTH / 2, 30)
 
         # После отрисовки всего, переворачиваем экран
         pygame.display.flip()
