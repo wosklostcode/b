@@ -26,7 +26,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-ABOUT = ['The Ballgame',
+ABOUT = ['ballgame',
          'Run away from big circles being a small circle!']
 
 # Создаем игру и окно
@@ -70,6 +70,10 @@ def color_selector(selected_value, color, **kwargs):
         player_img = "player_cat.png"
         mob_img = "mob_dog.png"
         color_back = (0, 0, 0)
+    elif color_selector[1] == 7:
+        player_img = "player_catnyan.png"
+        mob_img = "mob_donut.png"
+        color_back = (1, 68, 121)
 
 
 def start_the_game():
@@ -173,7 +177,7 @@ settings_menu = pygame_menu.Menu('Settings', 1920, 1080, theme=mytheme)
 about_menu = pygame_menu.Menu('About', 1920, 1080, theme=mytheme)
 
 menu.add.label(
-    'The Ball Game',
+    'ball game',
     background_color='#240046',
     background_inflate=(30, 0),
     float=False,
@@ -199,7 +203,13 @@ movement_mode = settings_menu.add.toggle_switch('Game Control',
                                                 switch_border_color=(255, 255, 255),
                                                 state_text_font_color=('#E0AAFF', '#E0AAFF'))
 
-settings_menu.add.selector('Color Palette ', [('blue', 1), ('orange', 2), ('purple', 3), ('green', 4), ('white', 5), ('cat', 6)],
+settings_menu.add.selector('Color Palette ', [('blue', 1),
+                                              ('orange', 2),
+                                              ('purple', 3),
+                                              ('green', 4),
+                                              ('white', 5),
+                                              ('cats and dogs', 6),
+                                              ('nya', 7)],
                            onchange=color_selector,
                            onreturn=color_selector,
                            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY,
