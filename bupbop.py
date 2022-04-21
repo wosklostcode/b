@@ -1,13 +1,9 @@
-from typing import Union
-
 import pygame
 import pygame_menu
 import random
-import time
 from os import path
 
-from pygame import Surface
-from pygame.surface import SurfaceType
+from pygame.mixer import music
 
 game_folder = path.dirname(__file__)
 img_dir = path.join(game_folder, 'img')
@@ -26,15 +22,20 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-ABOUT = ['ballgame',
-         'Run away from big circles being a small circle!',
+ABOUT = ['Run away from big circles being a small circle!',
          'how to play:',
          "arrow controls, p to pause, don't touch space"]
 
 # Создаем игру и окно
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load("sounds/nya.mp3")
+
+music_nya = "sounds/nya.mp3"
+music_defolt = "sounds/electronic-senses-plastic-flowers.mp3"
+sound_dead = pygame.mixer.Sound("sounds/minecraft-death-sound.mp3")
+sound_start = pygame.mixer.Sound("sounds/supercell_start.mp3")
+
+sound_start.play()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("circles")
@@ -43,9 +44,11 @@ clock = pygame.time.Clock()
 
 font_name = pygame.font.match_font('arial')
 
+music.load(music_defolt)
+
 
 def color_selector(selected_value, color, **kwargs):
-    global player_img, mob_img, color_back
+    global player_img, mob_img, color_back, back_music
 
     color_selector, index = selected_value
 
@@ -53,37 +56,43 @@ def color_selector(selected_value, color, **kwargs):
         player_img = "player.png"
         mob_img = "mob.png"
         color_back = (47, 113, 117)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 2:
         player_img = "player_orange.png"
         mob_img = "mob_orange.png"
         color_back = (129, 52, 5)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 3:
         player_img = "player_purple.png"
         mob_img = "mob_purple.png"
         color_back = (90, 24, 154)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 4:
         player_img = "player_green.png"
         mob_img = "mob_green.png"
         color_back = (21, 93, 39)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 5:
         player_img = "player_white.png"
         mob_img = "mob_white.png"
         color_back = (82, 97, 107)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 6:
         player_img = "player_cat.png"
         mob_img = "mob_dog.png"
         color_back = (0, 0, 0)
-        pygame.mixer.music.stop()
+        music.load(music_defolt)
+
     elif color_selector[1] == 7:
         player_img = "player_catnyan.png"
         mob_img = "mob_donut.png"
         color_back = (1, 68, 121)
-        pygame.mixer.music.play(-1)
+        music.load(music_nya)
 
 
 def start_the_game():
@@ -184,7 +193,7 @@ mytheme.title = False
 
 menu = pygame_menu.Menu('', 1920, 1080, theme=mytheme)
 settings_menu = pygame_menu.Menu('Settings', 1920, 1080, theme=mytheme)
-about_menu = pygame_menu.Menu('About', 1920, 1080, theme=mytheme)
+about_menu = pygame_menu.Menu('About Game', 1920, 1080, theme=mytheme)
 
 menu.add.label(
     'ball game',
@@ -195,7 +204,7 @@ menu.add.label(
 ).translate(0, -10)
 
 # Main Menu
-menu.add.label('Record: 0 s', label_id='l_record').set_margin(x=0, y=50)
+menu.add.label('Your Score: 0 s', label_id='l_record').set_margin(x=0, y=50)
 menu.add.button('Play', start_the_game)
 menu.add.button('Settings', settings_menu)
 menu.add.button('About', about_menu)
@@ -249,7 +258,7 @@ settings_menu.add.button('Return to menu', pygame_menu.events.BACK)
 
 # About Menu
 about_menu.add.label(
-    'About',
+    'About Game',
     background_color='#240046',
     background_inflate=(30, 0),
     float=False, font_size=80)
@@ -271,6 +280,9 @@ running = True
 paused = False
 while running:
     if game_over:
+        # if back_music:
+        music.stop()
+
         if menu.is_enabled():
             menu.mainloop(screen)
 
@@ -302,6 +314,9 @@ while running:
 
         game_over = False
 
+        # if music:
+        music.play()
+
         clock.tick(FPS)
 
     # Держим цикл на правильной скорости
@@ -313,10 +328,12 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_p:
                 paused = not paused
+                music.pause()
             if event.key == pygame.K_ESCAPE:
                 running = False
 
     if not paused and not game_over:
+        music.unpause()
         time_in_game += clock.get_time()
         if pygame.key.get_pressed()[pygame.K_SPACE]:
             new_mob()
@@ -327,8 +344,9 @@ while running:
 
         for hit in pygame.sprite.spritecollide(player, mobs, True, pygame.sprite.collide_mask):
             game_over = True
-            menu.get_widget('l_record').set_title(f'Record: {round(time_in_game / 1000, 2)} s')
+            menu.get_widget('l_record').set_title(f'Your Score: {round(time_in_game / 1000, 2)} s')
             menu.enable()
+            sound_dead.play()
 
         # Обновление
         all_sprites.update()
