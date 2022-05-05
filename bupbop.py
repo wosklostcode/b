@@ -13,6 +13,7 @@ HEIGHT = 1080
 FPS = 60
 
 MAX_MOBS = 50
+vol = 8
 
 NEWMOB_TIME = 1000
 # Задаем цветаМ
@@ -35,14 +36,14 @@ music_defolt = "sounds/electronic-senses-plastic-flowers.mp3"
 sound_dead = pygame.mixer.Sound("sounds/minecraft-death-sound.mp3")
 sound_start = pygame.mixer.Sound("sounds/supercell_start.mp3")
 
-sound_start.play()
+font_name = "arial"
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("circles")
 
-clock = pygame.time.Clock()
+sound_start.play()
 
-font_name = pygame.font.match_font('arial')
+clock = pygame.time.Clock()
 
 music.load(music_defolt)
 
@@ -183,6 +184,10 @@ class Mob(Character):
             self.kill()
 
 
+sound = pygame_menu.sound.Sound()
+sound.set_sound(pygame_menu.sound.SOUND_TYPE_KEY_ADDITION, "sounds/choose.mp3", volume=1)
+
+
 mytheme = pygame_menu.themes.Theme(background_color=(16, 0, 43, 255),
                                    title_background_color=(36, 0, 70),
                                    title_font_shadow=False,
@@ -195,6 +200,8 @@ menu = pygame_menu.Menu('', 1920, 1080, theme=mytheme)
 settings_menu = pygame_menu.Menu('Settings', 1920, 1080, theme=mytheme)
 about_menu = pygame_menu.Menu('About Game', 1920, 1080, theme=mytheme)
 
+# Main Menu
+menu.set_sound(sound, recursive=True)
 menu.add.label(
     'ball game',
     background_color='#240046',
@@ -202,8 +209,6 @@ menu.add.label(
     float=False,
     font_size=80
 ).translate(0, -10)
-
-# Main Menu
 menu.add.label('Your Score: 0 s', label_id='l_record').set_margin(x=0, y=50)
 menu.add.button('Play', start_the_game)
 menu.add.button('Settings', settings_menu)
@@ -211,6 +216,7 @@ menu.add.button('About', about_menu)
 menu.add.button('Quit', pygame_menu.events.EXIT)
 
 # Settings Menu
+settings_menu.set_sound(sound, recursive=True)
 movement_mode = settings_menu.add.toggle_switch('Game Control',
                                                 True,
                                                 toogleswitch_id='toogleswitch',
@@ -222,13 +228,13 @@ movement_mode = settings_menu.add.toggle_switch('Game Control',
                                                 switch_border_color=(255, 255, 255),
                                                 state_text_font_color=('#E0AAFF', '#E0AAFF'))
 
-settings_menu.add.selector('Color Palette ', [('blue', 1),
-                                              ('orange', 2),
-                                              ('purple', 3),
-                                              ('green', 4),
-                                              ('white', 5),
-                                              ('cats and dogs', 6),
-                                              ('nya', 7)],
+settings_menu.add.selector('Style ', [('blue', 1),
+                                      ('orange', 2),
+                                      ('purple', 3),
+                                      ('green', 4),
+                                      ('white', 5),
+                                      ('cats and dogs', 6),
+                                      ('nya', 7)],
                            onchange=color_selector,
                            onreturn=color_selector,
                            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY,
@@ -254,9 +260,13 @@ selector_mod = settings_menu.add.dropselect(
 slider = settings_menu.add.range_slider('Mob Counter', MAX_MOBS, (1, 150), 1, rangeslider_id='range_slider',
                                         value_format=lambda x: str(int(x)))
 
+volume_slider = settings_menu.add.range_slider('Volume', vol, (0, 10), 1, rangeslider_id='range_slider2',
+                                               value_format=lambda x: str(int(x)))
+
 settings_menu.add.button('Return to menu', pygame_menu.events.BACK)
 
 # About Menu
+about_menu.set_sound(sound, recursive=True)
 about_menu.add.label(
     'About Game',
     background_color='#240046',
@@ -288,6 +298,10 @@ while running:
 
         if slider.value_changed():
             MAX_MOBS = slider.get_value() - 1
+
+        if volume_slider.value_changed():
+            vol = volume_slider.get_value()
+        pygame.mixer.music.set_volume(vol / 10)
 
         selected_value = selector_mod.get_value()[0][1]
         if selected_value == 0:
