@@ -23,6 +23,9 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+PARTICLE_LIVE = 1 * 1000
+PARTICLE_DELAY = 10
+
 ABOUT = ['Run away from big circles being a small circle!',
          'how to play:',
          "arrow controls, p to pause, don't touch space"]
@@ -49,49 +52,56 @@ music.load(music_defolt)
 
 
 def color_selector(selected_value, color, **kwargs):
-    global player_img, mob_img, color_back, back_music
+    global player_img, mob_img, color_back, back_music, particle
 
     color_selector, index = selected_value
 
     if color_selector[1] == 1:
         player_img = "player.png"
         mob_img = "mob.png"
+        particle = None
         color_back = (47, 113, 117)
         music.load(music_defolt)
 
     elif color_selector[1] == 2:
         player_img = "player_orange.png"
         mob_img = "mob_orange.png"
+        particle = None
         color_back = (129, 52, 5)
         music.load(music_defolt)
 
     elif color_selector[1] == 3:
         player_img = "player_purple.png"
         mob_img = "mob_purple.png"
+        particle = None
         color_back = (90, 24, 154)
         music.load(music_defolt)
 
     elif color_selector[1] == 4:
         player_img = "player_green.png"
         mob_img = "mob_green.png"
+        particle = None
         color_back = (21, 93, 39)
         music.load(music_defolt)
 
     elif color_selector[1] == 5:
         player_img = "player_white.png"
         mob_img = "mob_white.png"
+        particle = None
         color_back = (82, 97, 107)
         music.load(music_defolt)
 
     elif color_selector[1] == 6:
         player_img = "player_cat.png"
         mob_img = "mob_dog.png"
+        particle = None
         color_back = (0, 0, 0)
         music.load(music_defolt)
 
     elif color_selector[1] == 7:
         player_img = "player_catnyan.png"
         mob_img = "mob_donut.png"
+        particle = ParticleNyan(size=8)
         color_back = (1, 68, 121)
         music.load(music_nya)
 
@@ -123,8 +133,23 @@ class Character(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+class Particle:
+    def __init__(self, size):
+        self.particles = []
+        self.size = size
+
+    def add_particles(self, position):
+        pass
+
+    def delete_particles(self):
+        pass
+
+    def draw(self):
+        pass
+
+
 class Player(Character):
-    def __init__(self):
+    def __init__(self, particle):
         super(Player, self).__init__(player_img)
         self.speedx = 0
         self.speedy = 0
@@ -132,6 +157,8 @@ class Player(Character):
         self.rect.centerx = WIDTH / 2
         self.rect.centery = HEIGHT / 2
         self.input = None
+        self.particle = particle
+        self.particle_timer = pygame.time.get_ticks()
 
     def mouse_input(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -157,6 +184,13 @@ class Player(Character):
                 self.input = self.keyboard_input
             case 'mouse':
                 self.input = self.mouse_input
+
+    def draw(self):
+        if self.particle:
+            if pygame.time.get_ticks() - self.particle_timer >= PARTICLE_DELAY:
+                self.particle.add_particles(self.rect.midleft)
+                self.particle.draw()
+                self.particle_timer = pygame.time.get_ticks()
 
     def update(self):
         self.input()
@@ -184,8 +218,40 @@ class Mob(Character):
             self.kill()
 
 
+class ParticleNyan(Particle):
+    def add_particles(self, position):
+        spawn_time = pygame.time.get_ticks()
+        offset_x = 0
+
+        particle_rect_1 = (pygame.rect.Rect(position[0] + offset_x, position[1] - self.size * 3, self.size, self.size), pygame.Color('Red'))
+        particle_rect_2 = (pygame.rect.Rect(position[0] + offset_x, position[1] - self.size * 2, self.size, self.size), pygame.Color('Orange'))
+        particle_rect_3 = (pygame.rect.Rect(position[0] + offset_x, position[1] - self.size, self.size, self.size), pygame.Color('Yellow'))
+        particle_rect_4 = (pygame.rect.Rect(position[0] + offset_x, position[1], self.size, self.size), pygame.Color('Green'))
+        particle_rect_5 = (pygame.rect.Rect(position[0] + offset_x, position[1] + self.size, self.size, self.size), pygame.Color('Lightblue'))
+        particle_rect_6 = (pygame.rect.Rect(position[0] + offset_x, position[1] + self.size * 2, self.size, self.size), pygame.Color('Blue'))
+        particle_rect_7 = (pygame.rect.Rect(position[0] + offset_x, position[1] + self.size * 3, self.size, self.size), pygame.Color('Purple'))
+
+        particle = (spawn_time, particle_rect_1, particle_rect_2, particle_rect_3, particle_rect_4,
+                    particle_rect_5, particle_rect_6, particle_rect_7)
+
+        self.particles.append(particle)
+
+    def delete_particles(self):
+        particles_copy = [particle for particle in self.particles if pygame.time.get_ticks() - particle[0] < PARTICLE_LIVE]
+        self.particles = particles_copy
+
+    def draw(self):
+        if self.particles:
+            self.delete_particles()
+            for particle in self.particles:
+                for rect in particle[1:]:
+                    pygame.draw.rect(screen, rect[1], rect[0])
+
+
 sound = pygame_menu.sound.Sound()
 sound.set_sound(pygame_menu.sound.SOUND_TYPE_KEY_ADDITION, "sounds/choose.mp3", volume=1)
+sound.set_sound(pygame_menu.sound.SOUND_TYPE_WIDGET_SELECTION, "sounds/choose.mp3", volume=1)
+sound.set_sound(pygame_menu.sound.SOUND_TYPE_CLICK_TOUCH, "sounds/choose.mp3", volume=1)
 
 
 mytheme = pygame_menu.themes.Theme(background_color=(16, 0, 43, 255),
@@ -316,7 +382,7 @@ while running:
         all_sprites = pygame.sprite.Group()
         mobs = pygame.sprite.Group()
 
-        player = Player()
+        player = Player(particle=particle)
 
         player.define_input(movement_mode.get_value())
 
@@ -368,6 +434,7 @@ while running:
         # Рендеринг
         screen.fill(color_back)
         all_sprites.draw(screen)
+        player.draw()
         # draw_text(screen, str(len(mobs)), 20, WIDTH / 2, 10)
         # draw_text(screen, str(f'{time_in_game / 1000 :.2f}'), 20, WIDTH / 2, 30)
 
