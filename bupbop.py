@@ -2,8 +2,9 @@ import pygame
 import pygame_menu
 import random
 from os import path
-
 from pygame.mixer import music
+
+from debug import debug
 
 game_folder = path.dirname(__file__)
 img_dir = path.join(game_folder, 'img')
@@ -50,6 +51,8 @@ clock = pygame.time.Clock()
 
 music.load(music_defolt)
 
+particle = None
+
 
 def color_selector(selected_value, color, **kwargs):
     global player_img, mob_img, color_back, back_music, particle
@@ -92,16 +95,9 @@ def color_selector(selected_value, color, **kwargs):
         music.load(music_defolt)
 
     elif color_selector[1] == 6:
-        player_img = "player_cat.png"
-        mob_img = "mob_dog.png"
-        particle = None
-        color_back = (0, 0, 0)
-        music.load(music_defolt)
-
-    elif color_selector[1] == 7:
         player_img = "player_catnyan.png"
         mob_img = "mob_donut.png"
-        particle = ParticleNyan(size=8)
+        particle = ParticleNyan(size=5)
         color_back = (1, 68, 121)
         music.load(music_nya)
 
@@ -153,16 +149,27 @@ class Player(Character):
         super(Player, self).__init__(player_img)
         self.speedx = 0
         self.speedy = 0
-        self.speed = 10
+        self.speed = 5
         self.rect.centerx = WIDTH / 2
         self.rect.centery = HEIGHT / 2
         self.input = None
         self.particle = particle
         self.particle_timer = pygame.time.get_ticks()
+        self.direction = 'right'
+
+    def flip_image(self, direction):
+        if self.direction != direction:
+            self.direction = direction
+            self.image = pygame.transform.flip(self.image, True, False)
 
     def mouse_input(self):
         mouse_pos = pygame.mouse.get_pos()
         self.rect.center = mouse_pos
+        rel_x = pygame.mouse.get_rel()[0]
+        if rel_x > 0:
+            self.flip_image('right')
+        elif rel_x < 0:
+            self.flip_image('left')
 
     def keyboard_input(self):
         self.speedx = 0
@@ -170,8 +177,12 @@ class Player(Character):
 
         keystate = pygame.key.get_pressed()
 
-        if keystate[pygame.K_LEFT]:     self.speedx = -self.speed
-        if keystate[pygame.K_RIGHT]:    self.speedx = self.speed
+        if keystate[pygame.K_LEFT]:
+            self.speedx = -self.speed
+            self.flip_image('left')
+        if keystate[pygame.K_RIGHT]:
+            self.speedx = self.speed
+            self.flip_image('right')
         if keystate[pygame.K_UP]:       self.speedy = -self.speed
         if keystate[pygame.K_DOWN]:     self.speedy = self.speed
 
@@ -188,7 +199,7 @@ class Player(Character):
     def draw(self):
         if self.particle:
             if pygame.time.get_ticks() - self.particle_timer >= PARTICLE_DELAY:
-                self.particle.add_particles(self.rect.midleft)
+                self.particle.add_particles(self.rect.midleft if self.direction == 'right' else self.rect.midright)
                 self.particle.draw()
                 self.particle_timer = pygame.time.get_ticks()
 
@@ -221,7 +232,7 @@ class Mob(Character):
 class ParticleNyan(Particle):
     def add_particles(self, position):
         spawn_time = pygame.time.get_ticks()
-        offset_x = 0
+        offset_x = -4
 
         particle_rect_1 = (pygame.rect.Rect(position[0] + offset_x, position[1] - self.size * 3, self.size, self.size), pygame.Color('Red'))
         particle_rect_2 = (pygame.rect.Rect(position[0] + offset_x, position[1] - self.size * 2, self.size, self.size), pygame.Color('Orange'))
@@ -299,8 +310,7 @@ settings_menu.add.selector('Style ', [('blue', 1),
                                       ('purple', 3),
                                       ('green', 4),
                                       ('white', 5),
-                                      ('cats and dogs', 6),
-                                      ('nya', 7)],
+                                      ('nyan cat', 6)],
                            onchange=color_selector,
                            onreturn=color_selector,
                            style=pygame_menu.widgets.SELECTOR_STYLE_FANCY,
